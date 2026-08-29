@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dawat — Order Pad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1E1512;
+    --steel: #2B211C;
+    --steelHi: #392C24;
+    --line: #4A392F;
+    --paper: #F3E9D2;
+    --paperDim: #E6D6AE;
+    --marigold: #E8A33D;
+    --marigoldDeep: #C1811F;
+    --maroon: #7A2E2E;
+    --green: #0F8A3B;
+    --redMark: #9A2A2A;
+    --bone: #F1E7D6;
+    --boneDim: #C7B79C;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--ink);
+    color: var(--bone);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+  }
+  .f-display { font-family: 'Fraunces', serif; }
+  .f-mono { font-family: 'Space Mono', monospace; }
+
+  /* ---------- Header ---------- */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--ink);
+    border-bottom: 1px solid var(--line);
+    padding: 24px 20px 16px;
+  }
+  .header-row { display: flex; align-items: center; justify-content: space-between; }
+  .eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--marigold);
+    margin: 0;
+  }
+  h1.brand {
+    font-size: 30px;
+    line-height: 1;
+    margin: 4px 0 0;
+    font-weight: 600;
+  }
+  .table-input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px dashed var(--marigold);
+    color: var(--marigold);
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    width: 2.4em;
+    text-align: center;
+    padding: 0 0 1px;
+  }
+  .table-input:focus { outline: none; border-bottom-style: solid; }
+  .table-input::placeholder { color: var(--marigold); opacity: 0.6; }
+
+  .badge {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    padding: 4px 10px;
+    border-radius: 3px;
+    background: var(--steel);
+    color: var(--boneDim);
+    border: 1px solid var(--line);
+    white-space: nowrap;
+  }
+
+  nav.tabs {
+    display: flex;
+    gap: 6px;
+    margin-top: 20px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    margin-left: -20px;
+    margin-right: -20px;
+    padding-left: 20px;
+    padding-right: 20px;
+    scrollbar-width: none;
+  }
+  nav.tabs::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+    padding: 8px 14px;
+    border-radius: 3px;
+    background: transparent;
+    color: var(--boneDim);
+    border: 1px solid var(--line);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .tab-btn.active {
+    background: var(--marigold);
+    color: var(--ink);
+    border-color: var(--marigold);
+    font-weight: 700;
+  }
+
+  /* ---------- Menu ---------- */
+  main {
+    padding: 8px 20px 130px;
+  }
+  section.cat-section { padding-top: 32px; scroll-margin-top: 130px; }
+  .cat-heading { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .cat-heading h2 { font-size: 20px; font-weight: 600; margin: 0; color: var(--bone); }
+  .cat-heading .rule { flex: 1; height: 1px; background: var(--line); }
+
+  .item-list { display: flex; flex-direction: column; gap: 12px; }
+  .item-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 6px;
+    background: var(--steel);
+    border: 1px solid var(--line);
+  }
+  .item-info { flex: 1; min-width: 0; }
+  .item-title-row { display: flex; align-items: center; gap: 8px; }
+  .item-title-row h3 { font-size: 16px; font-weight: 500; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item-desc { font-size: 14px; color: var(--boneDim); margin: 3px 0 0; }
+  .item-price { font-family: 'Space Mono', monospace; font-size: 14px; margin: 6px 0 0; color: var(--bone); }
+
+  .veg-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 13px;
+    height: 13px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .veg-mark.veg { border: 1.5px solid var(--green); }
+  .veg-mark.nonveg { border: 1.5px solid var(--redMark); }
+  .veg-mark .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .veg-mark.veg .dot { background: var(--green); }
+  .veg-mark.nonveg .dot { background: var(--redMark); }
+
+  .flame { color: var(--marigold); flex-shrink: 0; }
+
+  .add-btn {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--marigold);
+    color: var(--ink);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .stepper {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 999px;
+    padding: 4px;
+    background: var(--steelHi);
+    border: 1px solid var(--line);
+  }
+  .stepper button {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--bone);
+    background: transparent;
+  }
+  .stepper button.plus { background: var(--marigold); color: var(--ink); }
+  .stepper .qty { font-family: 'Space Mono', monospace; font-size: 14px; width: 16px; text-align: center; }
+
+  .mode-btn {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    padding: 4px 10px;
+    border-radius: 3px;
+    background: var(--steel);
+    color: var(--boneDim);
+    border: 1px solid var(--line);
+    white-space: nowrap;
+    cursor: pointer;
+    font-family: 'Space Mono', monospace;
+  }
+  .mode-btn.active {
+    background: var(--maroon);
+    color: var(--bone);
+    border-color: var(--maroon);
+  }
+
+  .item-card.unavailable-manage { opacity: 0.55; }
+
+  .manage-controls { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .avail-switch {
+    position: relative;
+    width: 38px;
+    height: 21px;
+    border-radius: 999px;
+    background: var(--line);
+    border: none;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .avail-switch.on { background: var(--green); }
+  .avail-switch .knob {
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 17px; height: 17px;
+    border-radius: 50%;
+    background: var(--bone);
+    transition: left 0.15s;
+  }
+  .avail-switch.on .knob { left: 19px; }
+
+  .trash-btn {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: var(--steelHi);
+    color: var(--redMark);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+
+  .sold-out-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--redMark);
+  }
+
+  .add-item-card {
+    margin-top: 20px;
+    padding: 16px;
+    border-radius: 8px;
+    background: var(--steel);
+    border: 1px dashed var(--line);
+  }
+  .add-item-card h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    margin: 0 0 12px;
+    color: var(--marigold);
+  }
+  .add-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .add-grid .full { grid-column: 1 / -1; }
+  .add-item-card label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--boneDim);
+    display: block;
+    margin-bottom: 4px;
+  }
+  .add-item-card input[type=text],
+  .add-item-card input[type=number],
+  .add-item-card select {
+    width: 100%;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    padding: 8px 10px;
+    border-radius: 4px;
+    background: var(--steelHi);
+    border: 1px solid var(--line);
+    color: var(--bone);
+  }
+  .add-item-card select { font-family: 'Inter', sans-serif; }
+  .check-row { display: flex; gap: 16px; align-items: center; margin-top: 2px; }
+  .check-row label { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--bone); text-transform: none; letter-spacing: 0; }
+  #addItemBtn {
+    margin-top: 14px;
+    width: 100%;
+    font-family: 'Space Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 12px;
+    padding: 10px;
+    border-radius: 4px;
+    background: var(--marigold);
+    color: var(--ink);
+    border: none;
+    cursor: pointer;
+  }
+
+  .credit {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    text-align: center;
+    color: var(--boneDim);
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+  }
+
+  /* ---------- Floating ticket tab ---------- */
+  #floatTab {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    z-index: 30;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-radius: 6px;
+    background: var(--marigold);
+    color: var(--ink);
+    border: none;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    cursor: pointer;
+    font-family: 'Space Mono', monospace;
+  }
+  #floatTab .left { display: flex; align-items: center; gap: 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; }
+  #floatTab .right { font-size: 14px; font-weight: 700; }
+
+  /* ---------- Sheet / overlay ---------- */
+  #overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    display: none;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  #overlayBg { position: absolute; inset: 0; background: rgba(0,0,0,0.55); }
+  #sheet {
+    position: relative;
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 14px 14px 0 0;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    transform: translateY(100%);
+    transition: transform 0.32s cubic-bezier(.2,.85,.3,1);
+  }
+  #overlay.open #sheet { transform: translateY(0); }
+
+  .ticket-edge {
+    height: 12px;
+    background:
+      radial-gradient(circle at 6px 6px, var(--ink) 0, var(--ink) 0) 0 0/0 0,
+      var(--paper);
+    -webkit-mask-image: radial-gradient(circle at 6px 6px, transparent 5px, black 5.5px);
+    -webkit-mask-size: 12px 12px;
+    -webkit-mask-repeat: repeat-x;
+    mask-image: radial-gradient(circle at 6px 6px, transparent 5px, black 5.5px);
+    mask-size: 12px 12px;
+    mask-repeat: repeat-x;
+  }
+
+  .sheet-header { padding: 0 20px 8px; display: flex; align-items: center; justify-content: space-between; }
+  .sheet-header .kicker { font-family: 'Space Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3em; color: var(--maroon); margin: 0; }
+  .sheet-header h2 { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 600; margin: 2px 0 0; }
+  .close-btn {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--paperDim); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .dashed-rule {
+    margin: 0 20px 12px;
+    height: 1px;
+    background: repeating-linear-gradient(to right, var(--ink) 0 6px, transparent 6px 12px);
+  }
+
+  #ticketItems { flex: 1; overflow-y: auto; padding: 0 20px; }
+  .empty-msg { font-family: 'Space Mono', monospace; font-size: 14px; padding: 32px 0; text-align: center; color: var(--maroon); }
+
+  .ticket-line { display: flex; align-items: flex-start; gap: 12px; font-family: 'Space Mono', monospace; font-size: 14px; margin-bottom: 12px; }
+  .ticket-line .name { flex: 1; display: flex; align-items: center; gap: 8px; }
+  .ticket-line .qty-x { color: var(--maroon); font-weight: 700; }
+  .ticket-line .remove-btn { color: var(--maroon); background: none; border: none; cursor: pointer; }
+
+  .notes-block { margin-top: 8px; }
+  .notes-block label {
+    font-family: 'Space Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em;
+    color: var(--maroon); display: flex; align-items: center; gap: 6px;
+  }
+  #notesInput {
+    font-family: 'Space Mono', monospace; font-size: 14px;
+    width: 100%; margin-top: 6px; padding: 8px; border-radius: 4px;
+    background: var(--paperDim); border: 1px solid rgba(30,21,18,0.15); resize: none;
+  }
+
+  .sheet-footer { padding: 12px 20px 24px; border-top: 1px dashed rgba(30,21,18,0.35); }
+  .row { font-family: 'Space Mono', monospace; font-size: 14px; display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .row.tax { color: var(--maroon); margin-bottom: 12px; }
+  .row.total { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+  #fireBtn {
+    font-family: 'Space Mono', monospace;
+    width: 100%; text-transform: uppercase; letter-spacing: 0.15em; font-size: 14px; font-weight: 700;
+    padding: 14px; border-radius: 4px; background: var(--marigold); color: var(--ink); border: none; cursor: pointer;
+  }
+
+  /* ---------- Confirmation ---------- */
+  #confirmOverlay {
+    position: fixed; inset: 0; z-index: 50; display: none;
+    align-items: center; justify-content: center; padding: 0 24px;
+    background: rgba(0,0,0,0.7);
+  }
+  #confirmCard {
+    width: 100%; max-width: 320px; border-radius: 8px; padding: 24px; text-align: center;
+    background: var(--paper); color: var(--ink); border: 3px solid var(--marigold);
+    animation: stampIn 0.45s cubic-bezier(.2,.9,.3,1.2) forwards;
+  }
+  @keyframes stampIn {
+    0% { transform: scale(2.4) rotate(-8deg); opacity: 0; }
+    60% { transform: scale(0.92) rotate(-8deg); opacity: 1; }
+    100% { transform: scale(1) rotate(-8deg); opacity: 1; }
+  }
+  .check-circle {
+    width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 16px;
+    background: var(--marigold); color: var(--ink);
+    display: flex; align-items: center; justify-content: center;
+  }
+  #confirmCard .kicker { font-family: 'Space Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3em; color: var(--maroon); margin: 0; }
+  #confirmCard h3 { font-family: 'Fraunces', serif; font-size: 30px; font-weight: 700; margin: 8px 0; }
+  #confirmCard .eta { font-family: 'Space Mono', monospace; font-size: 14px; margin: 0; }
+  #newOrderBtn {
+    font-family: 'Space Mono', monospace; width: 100%; text-transform: uppercase; letter-spacing: 0.15em; font-size: 12px;
+    padding: 12px; border-radius: 4px; background: var(--ink); color: var(--bone); border: none; cursor: pointer; margin-top: 24px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-row">
+    <div>
+      <p class="eyebrow">Table <input id="tableInput" class="table-input f-mono" type="text" inputmode="numeric" maxlength="3" placeholder="—" oninput="tableNumber = this.value" /> · Dine-in</p>
+      <h1 class="brand f-display">Dawat</h1>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <button class="mode-btn f-mono" id="modeBtn" onclick="toggleMode()">Kitchen</button>
+      <div class="badge f-mono">Order Pad</div>
+    </div>
+  </div>
+  <nav class="tabs" id="tabs"></nav>
+</header>
+
+<main id="menuRoot"></main>
+
+<button id="floatTab" onclick="openSheet()">
+  <span class="left"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg><span id="floatCount">0 items on KOT</span></span>
+  <span class="right" id="floatTotal">₹0.00</span>
+</button>
+
+<div id="overlay">
+  <div id="overlayBg" onclick="closeSheet()"></div>
+  <div id="sheet">
+    <div class="ticket-edge"></div>
+    <div class="sheet-header">
+      <div>
+        <p class="kicker f-mono" id="sheetTableLine">Kitchen Order Ticket · Table —</p>
+        <h2 class="f-display">Your KOT</h2>
+      </div>
+      <button class="close-btn" onclick="closeSheet()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="dashed-rule"></div>
+    <div id="ticketItems"></div>
+    <div class="sheet-footer" id="sheetFooter" style="display:none">
+      <div class="row"><span>Subtotal</span><span id="rowSubtotal">₹0.00</span></div>
+      <div class="row tax"><span>GST (5%)</span><span id="rowTax">₹0.00</span></div>
+      <div class="row total"><span>Total</span><span id="rowTotal">₹0.00</span></div>
+      <button id="fireBtn" onclick="fireOrder()">Send KOT to Kitchen</button>
+    </div>
+  </div>
+</div>
+
+<div id="confirmOverlay">
+  <div id="confirmCard">
+    <div class="check-circle">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
+    </div>
+    <p class="kicker f-mono">Sent to Kitchen</p>
+    <h3 id="kotNumber" class="f-display">KOT #000</h3>
+    <p class="eta f-mono" id="etaText">Ready in ~20 min</p>
+    <p class="eta f-mono" id="tableText" style="margin-top:4px;color:var(--maroon);">Table —</p>
+    <button id="newOrderBtn" onclick="newOrder()">Start New Order</button>
+  </div>
+</div>
+
+<script>
+  // ---------------------------------------------------------------------
+  // MENU — edit names, descriptions, prices (₹), veg flag (true/false)
+  // and hot (spicy, true/false) freely. Layout adapts automatically.
+  // ---------------------------------------------------------------------
+  const CATEGORIES = ["Starters", "Tandoor", "Curries", "Biryani & Rice", "Breads", "Desserts", "Beverages"];
+
+  const MENU = [
+    { id: "s1", cat: "Starters", name: "Samosa Chaat", desc: "Crushed samosa, chickpeas, yoghurt, tamarind", price: 120, veg: true, hot: false },
+    { id: "s2", cat: "Starters", name: "Paneer Tikka", desc: "Char-grilled cottage cheese, mint chutney", price: 220, veg: true, hot: true },
+    { id: "s3", cat: "Starters", name: "Chicken 65", desc: "Deep-fried spiced chicken, curry leaf", price: 240, veg: false, hot: true },
+    { id: "s4", cat: "Starters", name: "Dahi Puri", desc: "Crisp puris, yoghurt, sweet chutney", price: 110, veg: true, hot: false },
+
+    { id: "t1", cat: "Tandoor", name: "Tandoori Chicken (Half)", desc: "Yoghurt-marinated, char-roasted", price: 320, veg: false, hot: true },
+    { id: "t2", cat: "Tandoor", name: "Seekh Kebab", desc: "Minced lamb, ginger, garam masala", price: 280, veg: false, hot: true },
+    { id: "t3", cat: "Tandoor", name: "Tandoori Paneer Tikka", desc: "Cottage cheese, bell pepper, onion", price: 240, veg: true, hot: true },
+    { id: "t4", cat: "Tandoor", name: "Malai Chicken Tikka", desc: "Cream, cashew, mild spice", price: 300, veg: false, hot: false },
+
+    { id: "c1", cat: "Curries", name: "Butter Chicken", desc: "Tomato, cream, fenugreek", price: 340, veg: false, hot: false },
+    { id: "c2", cat: "Curries", name: "Paneer Butter Masala", desc: "Cottage cheese in rich tomato gravy", price: 280, veg: true, hot: false },
+    { id: "c3", cat: "Curries", name: "Dal Makhani", desc: "Black lentils, butter, slow-cooked", price: 220, veg: true, hot: false },
+    { id: "c4", cat: "Curries", name: "Kadai Chicken", desc: "Bell pepper, onion, kadai masala", price: 320, veg: false, hot: true },
+    { id: "c5", cat: "Curries", name: "Palak Paneer", desc: "Cottage cheese in spiced spinach gravy", price: 260, veg: true, hot: false },
+
+    { id: "b1", cat: "Biryani & Rice", name: "Hyderabadi Chicken Biryani", desc: "Long-grain basmati, saffron, raita", price: 300, veg: false, hot: true },
+    { id: "b2", cat: "Biryani & Rice", name: "Veg Dum Biryani", desc: "Mixed vegetables, saffron, mint", price: 240, veg: true, hot: false },
+    { id: "b3", cat: "Biryani & Rice", name: "Jeera Rice", desc: "Basmati, roasted cumin", price: 150, veg: true, hot: false },
+
+    { id: "n1", cat: "Breads", name: "Butter Naan", desc: "Tandoor-baked, brushed with butter", price: 60, veg: true, hot: false },
+    { id: "n2", cat: "Breads", name: "Garlic Naan", desc: "Roasted garlic, coriander", price: 70, veg: true, hot: false },
+    { id: "n3", cat: "Breads", name: "Tandoori Roti", desc: "Whole wheat, char-baked", price: 40, veg: true, hot: false },
+    { id: "n4", cat: "Breads", name: "Laccha Paratha", desc: "Layered, flaky", price: 70, veg: true, hot: false },
+
+    { id: "d1", cat: "Desserts", name: "Gulab Jamun", desc: "Milk dumplings, cardamom syrup", price: 110, veg: true, hot: false },
+    { id: "d2", cat: "Desserts", name: "Rasmalai", desc: "Cottage cheese, saffron milk", price: 130, veg: true, hot: false },
+    { id: "d3", cat: "Desserts", name: "Kulfi", desc: "Traditional Indian ice cream, pistachio", price: 120, veg: true, hot: false },
+
+    { id: "v1", cat: "Beverages", name: "Masala Chai", desc: "Spiced milk tea", price: 60, veg: true, hot: false },
+    { id: "v2", cat: "Beverages", name: "Mango Lassi", desc: "Yoghurt, mango, cardamom", price: 110, veg: true, hot: false },
+    { id: "v3", cat: "Beverages", name: "Nimbu Pani", desc: "Fresh lime, mint, black salt", price: 70, veg: true, hot: false },
+    { id: "v4", cat: "Beverages", name: "Thums Up", desc: "Chilled, 300ml", price: 60, veg: true, hot: false },
+  ];
+
+  MENU.forEach(item => { item.available = true; });
+
+  const GST_RATE = 0.05;
+  let cart = {}; // id -> qty
+  let notes = "";
+  let tableNumber = "";
+  let mode = "order"; // "order" | "manage"
+  let nextId = 1000;
+
+  const flameSVG = `<svg class="flame" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8.5 14.5A2.5 2.5 0 0011 17a2.5 2.5 0 002.5-2.5c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7.5 7.5 0 11-15 0c0-1.153.433-2.294 1-3 1.36-1.798 2.5-3.5 2.5-5.5z"/></svg>`;
+  const vegMark = (veg) => `<span class="veg-mark ${veg ? "veg" : "nonveg"}"><span class="dot"></span></span>`;
+
+  function fmt(n) { return "₹" + n.toFixed(2); }
+
+  function renderTabs() {
+    const tabs = document.getElementById("tabs");
+    tabs.innerHTML = CATEGORIES.map((cat, i) =>
+      `<button class="tab-btn f-mono${i === 0 ? " active" : ""}" data-cat="${cat}" onclick="scrollToCat('${cat}')">${cat}</button>`
+    ).join("");
+  }
+
+  function renderMenu() {
+    const root = document.getElementById("menuRoot");
+    let html = "";
+    CATEGORIES.forEach(cat => {
+      const catItems = MENU.filter(m => m.cat === cat);
+      if (catItems.length === 0) return;
+      html += `<section class="cat-section" id="cat-${cat.replace(/\s+/g,'-')}">
+        <div class="cat-heading"><h2 class="f-display">${cat}</h2><div class="rule"></div></div>
+        <div class="item-list">`;
+      catItems.forEach(item => {
+        const dimmed = !item.available;
+        html += `<div class="item-card${dimmed ? " unavailable-manage" : ""}" id="card-${item.id}">
+          <div class="item-info">
+            <div class="item-title-row">
+              ${vegMark(item.veg)}
+              <h3 class="f-display">${item.name}</h3>
+              ${item.hot ? flameSVG : ""}
+            </div>
+            <p class="item-desc">${item.desc}</p>
+            <p class="item-price f-mono">₹${item.price}</p>
+            ${dimmed ? `<p class="sold-out-tag">${mode === "manage" ? "Marked unavailable" : "Not available"}</p>` : ""}
+          </div>
+          <div id="ctrl-${item.id}"></div>
+        </div>`;
+      });
+      html += `</div></section>`;
+    });
+
+    if (mode === "manage") {
+      html += `<div class="add-item-card">
+        <h3 class="f-display">+ Add New Item</h3>
+        <div class="add-grid">
+          <div class="full">
+            <label>Name</label>
+            <input type="text" id="newName" placeholder="e.g. Chana Masala" />
+          </div>
+          <div class="full">
+            <label>Description</label>
+            <input type="text" id="newDesc" placeholder="Short description" />
+          </div>
+          <div>
+            <label>Category</label>
+            <select id="newCat">${CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join("")}</select>
+          </div>
+          <div>
+            <label>Price (₹)</label>
+            <input type="number" id="newPrice" placeholder="0" min="0" />
+          </div>
+          <div class="full check-row">
+            <label><input type="checkbox" id="newVeg" checked /> Vegetarian</label>
+            <label><input type="checkbox" id="newHot" /> Spicy</label>
+          </div>
+        </div>
+        <button id="addItemBtn" onclick="addCatalogItem()">Add to Menu</button>
+      </div>`;
+    }
+
+    html += `<p class="credit">Developed by Malay Jha</p>`;
+    root.innerHTML = html;
+    MENU.forEach(item => renderControl(item.id));
+  }
+
+  function renderControl(id) {
+    const item = MENU.find(m => m.id === id);
+    const el = document.getElementById(`ctrl-${id}`);
+    if (!el) return;
+
+    if (mode === "manage") {
+      el.innerHTML = `<div class="manage-controls">
+        <button class="avail-switch${item.available ? " on" : ""}" onclick="toggleAvailable('${id}')" aria-label="Toggle availability for ${item.name}">
+          <span class="knob"></span>
+        </button>
+        <button class="trash-btn" onclick="removeCatalogItem('${id}')" aria-label="Remove ${item.name} from catalogue">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6h16z"/></svg>
+        </button>
+      </div>`;
+      return;
+    }
+
+    const qty = cart[id] || 0;
+    if (!item.available) {
+      el.innerHTML = `<button class="add-btn" disabled aria-label="${item.name} is not available" style="background: var(--line); color: var(--boneDim); cursor: not-allowed;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+      </button>`;
+      return;
+    }
+    if (qty === 0) {
+      el.innerHTML = `<button class="add-btn" onclick="addItem('${id}')" aria-label="Add ${item.name}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+      </button>`;
+    } else {
+      el.innerHTML = `<div class="stepper">
+        <button onclick="decItem('${id}')" aria-label="Remove one ${item.name}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/></svg>
+        </button>
+        <span class="qty f-mono">${qty}</span>
+        <button class="plus" onclick="addItem('${id}')" aria-label="Add one more ${item.name}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+      </div>`;
+    }
+  }
+
+  function toggleMode() {
+    mode = mode === "order" ? "manage" : "order";
+    document.getElementById("modeBtn").classList.toggle("active", mode === "manage");
+    document.getElementById("modeBtn").textContent = mode === "manage" ? "Done" : "Kitchen";
+    renderMenu();
+    updateFloatTab();
+  }
+
+  function toggleAvailable(id) {
+    const item = MENU.find(m => m.id === id);
+    if (!item) return;
+    item.available = !item.available;
+    const card = document.getElementById(`card-${id}`);
+    card.classList.toggle("unavailable-manage", !item.available);
+    renderControl(id);
+    const infoEl = card.querySelector(".item-info");
+    let tag = infoEl.querySelector(".sold-out-tag");
+    if (!item.available && !tag) {
+      infoEl.insertAdjacentHTML("beforeend", `<p class="sold-out-tag">Marked unavailable</p>`);
+    } else if (item.available && tag) {
+      tag.remove();
+    }
+  }
+
+  function removeCatalogItem(id) {
+    const item = MENU.find(m => m.id === id);
+    if (!item) return;
+    if (!confirm(`Remove "${item.name}" from the catalogue? This can't be undone.`)) return;
+    MENU.splice(MENU.findIndex(m => m.id === id), 1);
+    delete cart[id];
+    renderMenu();
+    updateFloatTab();
+  }
+
+  function addCatalogItem() {
+    const name = document.getElementById("newName").value.trim();
+    const desc = document.getElementById("newDesc").value.trim();
+    const cat = document.getElementById("newCat").value;
+    const price = parseFloat(document.getElementById("newPrice").value);
+    const veg = document.getElementById("newVeg").checked;
+    const hot = document.getElementById("newHot").checked;
+
+    if (!name || isNaN(price) || price <= 0) {
+      alert("Please enter a name and a valid price.");
+      return;
+    }
+
+    const id = "custom-" + (nextId++);
+    MENU.push({ id, cat, name, desc: desc || "—", price, veg, hot, available: true });
+    renderMenu();
+  }
+
+  function addItem(id) {
+    cart[id] = (cart[id] || 0) + 1;
+    renderControl(id);
+    updateFloatTab();
+    if (document.getElementById("overlay").classList.contains("open")) renderTicket();
+  }
+  function decItem(id) {
+    if (!cart[id]) return;
+    cart[id] -= 1;
+    if (cart[id] <= 0) delete cart[id];
+    renderControl(id);
+    updateFloatTab();
+    if (document.getElementById("overlay").classList.contains("open")) renderTicket();
+  }
+  function removeItem(id) {
+    delete cart[id];
+    renderControl(id);
+    updateFloatTab();
+    renderTicket();
+  }
+
+  function getItemsArray() {
+    return Object.entries(cart).map(([id, qty]) => ({ ...MENU.find(m => m.id === id), qty }));
+  }
+  function getTotals() {
+    const items = getItemsArray();
+    const count = items.reduce((s, i) => s + i.qty, 0);
+    const subtotal = items.reduce((s, i) => s + i.qty * i.price, 0);
+    const gst = subtotal * GST_RATE;
+    return { items, count, subtotal, gst, total: subtotal + gst };
+  }
+
+  function updateFloatTab() {
+    const { count, total } = getTotals();
+    const tab = document.getElementById("floatTab");
+    if (mode === "order" && count > 0 && !document.getElementById("overlay").classList.contains("open")) {
+      tab.style.display = "flex";
+      document.getElementById("floatCount").textContent = `${count} item${count !== 1 ? "s" : ""} on KOT`;
+      document.getElementById("floatTotal").textContent = fmt(total);
+    } else {
+      tab.style.display = "none";
+    }
+  }
+
+  function renderTicket() {
+    const { items, subtotal, gst, total } = getTotals();
+    const wrap = document.getElementById("ticketItems");
+    const footer = document.getElementById("sheetFooter");
+    if (items.length === 0) {
+      wrap.innerHTML = `<p class="empty-msg">KOT is empty. Add something from the menu.</p>`;
+      footer.style.display = "none";
+      return;
+    }
+    let html = "";
+    items.forEach(item => {
+      html += `<div class="ticket-line">
+        <div class="name"><span class="qty-x">${item.qty}×</span>${vegMark(item.veg)}<span>${item.name}</span></div>
+        <span>${fmt(item.qty * item.price)}</span>
+        <button class="remove-btn" onclick="removeItem('${item.id}')" aria-label="Remove ${item.name}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>`;
+    });
+    html += `<div class="notes-block">
+      <label class="f-mono">📝 Notes for the kitchen</label>
+      <textarea id="notesInput" rows="2" placeholder="Spice level, allergies, no onion-garlic…" oninput="notes = this.value">${notes}</textarea>
+    </div>`;
+    wrap.innerHTML = html;
+    footer.style.display = "block";
+    document.getElementById("rowSubtotal").textContent = fmt(subtotal);
+    document.getElementById("rowTax").textContent = fmt(gst);
+    document.getElementById("rowTotal").textContent = fmt(total);
+  }
+
+  function openSheet() {
+    document.getElementById("sheetTableLine").textContent =
+      `Kitchen Order Ticket · Table ${tableNumber || "—"}`;
+    renderTicket();
+    document.getElementById("overlay").style.display = "flex";
+    requestAnimationFrame(() => document.getElementById("overlay").classList.add("open"));
+    document.getElementById("floatTab").style.display = "none";
+  }
+  function closeSheet() {
+    document.getElementById("overlay").classList.remove("open");
+    setTimeout(() => { document.getElementById("overlay").style.display = "none"; updateFloatTab(); }, 320);
+  }
+
+  function fireOrder() {
+    const number = String(Math.floor(Math.random() * 900) + 100);
+    const eta = 20 + Math.floor(Math.random() * 12);
+    document.getElementById("kotNumber").textContent = `KOT #${number}`;
+    document.getElementById("etaText").textContent = `Ready in ~${eta} min`;
+    document.getElementById("tableText").textContent = `Table ${tableNumber || "—"}`;
+    document.getElementById("confirmOverlay").style.display = "flex";
+    cart = {};
+    notes = "";
+    MENU.forEach(item => renderControl(item.id));
+    document.getElementById("overlay").classList.remove("open");
+    setTimeout(() => { document.getElementById("overlay").style.display = "none"; }, 320);
+  }
+  function newOrder() {
+    document.getElementById("confirmOverlay").style.display = "none";
+    updateFloatTab();
+  }
+
+  function scrollToCat(cat) {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.cat === cat));
+    const el = document.getElementById(`cat-${cat.replace(/\s+/g,'-')}`);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  renderTabs();
+  renderMenu();
+  updateFloatTab();
+</script>
+
+</body>
+</html>
