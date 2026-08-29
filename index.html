@@ -428,6 +428,70 @@
     padding: 14px; border-radius: 4px; background: var(--marigold); color: var(--ink); border: none; cursor: pointer;
   }
 
+  #ordersOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    display: none;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  #ordersOverlayBg { position: absolute; inset: 0; background: rgba(0,0,0,0.55); }
+  #ordersSheet {
+    position: relative;
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 14px 14px 0 0;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    transform: translateY(100%);
+    transition: transform 0.32s cubic-bezier(.2,.85,.3,1);
+  }
+  #ordersOverlay.open #ordersSheet { transform: translateY(0); }
+
+  #ordersList { flex: 1; overflow-y: auto; padding: 0 20px 24px; }
+
+  .order-card {
+    border: 1px solid rgba(30,21,18,0.15);
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 12px;
+    background: var(--paperDim);
+  }
+  .order-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .order-card-top h4 { font-family: 'Fraunces', serif; font-size: 17px; margin: 0; font-weight: 600; }
+  .order-meta { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--maroon); margin: 2px 0 0; }
+  .status-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 4px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .status-badge.kitchen { background: var(--marigold); color: var(--ink); }
+  .status-badge.delivered { background: var(--green); color: var(--paper); }
+  .order-items { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--ink); margin: 10px 0 0; line-height: 1.6; }
+  .order-total-row { display: flex; justify-content: space-between; font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(30,21,18,0.3); }
+  .deliver-btn {
+    margin-top: 10px;
+    width: 100%;
+    font-family: 'Space Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 11px;
+    padding: 9px;
+    border-radius: 4px;
+    background: var(--ink);
+    color: var(--bone);
+    border: none;
+    cursor: pointer;
+  }
+  .no-orders { font-family: 'Space Mono', monospace; font-size: 14px; text-align: center; padding: 32px 0; color: var(--maroon); }
+
   /* ---------- Confirmation ---------- */
   #confirmOverlay {
     position: fixed; inset: 0; z-index: 50; display: none;
@@ -467,7 +531,9 @@
       <h1 class="brand f-display">Dawat</h1>
     </div>
     <div style="display:flex; align-items:center; gap:8px;">
-      <button class="mode-btn f-mono" id="modeBtn" onclick="toggleMode()">Kitchen</button>
+      <button class="mode-btn f-mono" id="ordersBtn" onclick="openOrders()" style="display:none">Orders</button>
+      <button class="mode-btn f-mono" id="modeBtn" onclick="toggleMode()" style="display:none">Kitchen</button>
+      <button class="mode-btn f-mono" id="staffBtn" onclick="openStaffPanel()">Staff Login</button>
       <div class="badge f-mono">Order Pad</div>
     </div>
   </div>
@@ -502,6 +568,24 @@
       <div class="row total"><span>Total</span><span id="rowTotal">₹0.00</span></div>
       <button id="fireBtn" onclick="fireOrder()">Send KOT to Kitchen</button>
     </div>
+  </div>
+</div>
+
+<div id="ordersOverlay">
+  <div id="ordersOverlayBg" onclick="closeOrders()"></div>
+  <div id="ordersSheet">
+    <div class="ticket-edge"></div>
+    <div class="sheet-header">
+      <div>
+        <p class="kicker f-mono">Order History</p>
+        <h2 class="f-display">Kitchen Queue</h2>
+      </div>
+      <button class="close-btn" onclick="closeOrders()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="dashed-rule"></div>
+    <div id="ordersList"></div>
   </div>
 </div>
 
@@ -569,6 +653,7 @@
   let tableNumber = "";
   let mode = "order"; // "order" | "manage"
   let nextId = 1000;
+  let orders = []; // { number, table, items, subtotal, gst, total, time, status }
 
   const flameSVG = `<svg class="flame" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8.5 14.5A2.5 2.5 0 0011 17a2.5 2.5 0 002.5-2.5c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7.5 7.5 0 11-15 0c0-1.153.433-2.294 1-3 1.36-1.798 2.5-3.5 2.5-5.5z"/></svg>`;
   const vegMark = (veg) => `<span class="veg-mark ${veg ? "veg" : "nonveg"}"><span class="dot"></span></span>`;
@@ -683,6 +768,50 @@
         </button>
       </div>`;
     }
+  }
+
+  function timeStr(d) {
+    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  }
+
+  function renderOrders() {
+    const wrap = document.getElementById("ordersList");
+    if (orders.length === 0) {
+      wrap.innerHTML = `<p class="no-orders">No orders yet. Sent KOTs will show up here.</p>`;
+      return;
+    }
+    wrap.innerHTML = orders.map(o => `
+      <div class="order-card">
+        <div class="order-card-top">
+          <div>
+            <h4 class="f-display">KOT #${o.number} · Table ${o.table}</h4>
+            <p class="order-meta">${timeStr(o.time)} · ${o.items.reduce((s,i)=>s+i.qty,0)} item${o.items.reduce((s,i)=>s+i.qty,0)!==1?"s":""}</p>
+          </div>
+          <span class="status-badge ${o.status}">${o.status === "delivered" ? "Delivered" : "In Kitchen"}</span>
+        </div>
+        <div class="order-items">
+          ${o.items.map(i => `${i.qty}× ${i.name}`).join("<br/>")}
+        </div>
+        <div class="order-total-row"><span>Total</span><span>${fmt(o.total)}</span></div>
+        ${o.status === "kitchen" ? `<button class="deliver-btn" onclick="markDelivered('${o.number}')">Mark Delivered</button>` : ""}
+      </div>
+    `).join("");
+  }
+
+  function markDelivered(number) {
+    const o = orders.find(x => x.number === number);
+    if (o) o.status = "delivered";
+    renderOrders();
+  }
+
+  function openOrders() {
+    renderOrders();
+    document.getElementById("ordersOverlay").style.display = "flex";
+    requestAnimationFrame(() => document.getElementById("ordersOverlay").classList.add("open"));
+  }
+  function closeOrders() {
+    document.getElementById("ordersOverlay").classList.remove("open");
+    setTimeout(() => { document.getElementById("ordersOverlay").style.display = "none"; }, 320);
   }
 
   function toggleMode() {
@@ -825,8 +954,22 @@
   }
 
   function fireOrder() {
+    const { items, subtotal, gst, total } = getTotals();
     const number = String(Math.floor(Math.random() * 900) + 100);
     const eta = 20 + Math.floor(Math.random() * 12);
+
+    orders.unshift({
+      number,
+      table: tableNumber || "—",
+      items: items.map(i => ({ name: i.name, qty: i.qty, price: i.price, veg: i.veg })),
+      notes,
+      subtotal,
+      gst,
+      total,
+      time: new Date(),
+      status: "kitchen",
+    });
+
     document.getElementById("kotNumber").textContent = `KOT #${number}`;
     document.getElementById("etaText").textContent = `Ready in ~${eta} min`;
     document.getElementById("tableText").textContent = `Table ${tableNumber || "—"}`;
